@@ -1,0 +1,27 @@
+# Node dependencies
+node_modules/
+
+# Environment files
+.env
+.env.*
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build output
+dist/
+build/
+
+# Editor folders
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Lock files (optional, ถ้าอยากให้ reproducible build ก็ไม่ต้อง ignore)
+# package-lock.json
+# yarn.lock

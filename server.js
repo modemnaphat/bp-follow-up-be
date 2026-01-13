@@ -18,6 +18,45 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+// ฟังก์ชันหาหรือสร้าง user
+async function getOrCreateUser(lineUserId, profile) {
+  try {
+    // ลองหา user ก่อน
+    const { data: existingUser, error: findError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('line_user_id', lineUserId)
+      .single();
+
+    if (existingUser) {
+      return existingUser.id; // return user id
+    }
+
+    // ถ้าไม่เจอ ให้สร้างใหม่
+    const { data: newUser, error: createError } = await supabase
+      .from('users')
+      .insert([
+        {
+          line_user_id: lineUserId,
+          display_name: profile?.displayName || 'Unknown',
+          picture_url: profile?.pictureUrl || null
+        }
+      ])
+      .select('id')
+      .single();
+
+    if (createError) {
+      console.error('Error creating user:', createError);
+      throw createError;
+    }
+
+    return newUser.id;
+  } catch (error) {
+    console.error('Error in getOrCreateUser:', error);
+    throw error;
+  }
+}
+
 // ฟังก์ชันวิเคราะห์ความดัน
 function analyzeBP(systolic, diastolic) {
   let level, risk, color, advice;
@@ -57,7 +96,7 @@ function analyzeBP(systolic, diastolic) {
   return { level, risk, color, advice };
 }
 
-// สร้าง Flex Message
+// สร้าง Flex Message สำหรับแสดงผล
 function createBPFlexMessage(systolic, diastolic, analysis, date) {
   return {
     type: 'flex',
@@ -319,16 +358,15 @@ function createHistoryFlexMessage(historyData) {
   };
 }
 
-// บันทึกข้อมูล
+// บันทึกข้อมูลลง Supabase
 async function saveBPRecord(userId, systolic, diastolic) {
   const { data, error } = await supabase
     .from('bp_records')
     .insert([
       {
-        user_id: userId,
+        user_id: userId, // ใช้ user.id (BIGINT)
         systolic: systolic,
-        diastolic: diastolic,
-        created_at: new Date().toISOString()
+        diastolic: diastolic
       }
     ]);
   
@@ -340,7 +378,7 @@ async function saveBPRecord(userId, systolic, diastolic) {
   return data;
 }
 
-// ดึงประวัติ
+// ดึงประวัติรายวัน
 async function getDailyHistory(userId, days = 7) {
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
@@ -348,7 +386,7 @@ async function getDailyHistory(userId, days = 7) {
   const { data: records, error } = await supabase
     .from('bp_records')
     .select('*')
-    .eq('user_id', userId)
+    .eq('user_id', userId) // ใช้ user.id (BIGINT)
     .gte('created_at', startDate.toISOString())
     .order('created_at', { ascending: false });
 
@@ -357,6 +395,7 @@ async function getDailyHistory(userId, days = 7) {
     return [];
   }
 
+  // จัดกลุ่มตามวัน
   const grouped = {};
   records.forEach(record => {
     const date = new Date(record.created_at).toLocaleDateString('th-TH', {
@@ -375,6 +414,7 @@ async function getDailyHistory(userId, days = 7) {
     grouped[date].diastolic.push(record.diastolic);
   });
 
+  // คำนวณค่าเฉลี่ย
   return Object.entries(grouped).map(([date, values]) => {
     const avgSystolic = Math.round(
       values.systolic.reduce((a, b) => a + b, 0) / values.systolic.length
@@ -400,7 +440,7 @@ app.post('/webhook', line.middleware(config), async (req, res) => {
     await Promise.all(req.body.events.map(handleEvent));
     res.json({ success: true });
   } catch (err) {
-    console.error(err);
+    console.error('Webhook error:', err);
     res.status(500).end();
   }
 });
@@ -411,61 +451,94 @@ async function handleEvent(event) {
     return null;
   }
 
-  const userId = event.source.userId;
+  const lineUserId = event.source.userId;
   const text = event.message.text.trim();
 
-  // คำสั่ง "ประวัติ"
-  if (text === 'ประวัติ' || text.toLowerCase() === 'history') {
-    const history = await getDailyHistory(userId);
+  try {
+    // ดึงข้อมูล profile
+    let profile;
+    try {
+      profile = await client.getProfile(lineUserId);
+    } catch (err) {
+      console.error('Error getting profile:', err);
+      profile = null;
+    }
+
+    // หาหรือสร้าง user ใน database
+    const userId = await getOrCreateUser(lineUserId, profile);
+
+    // คำสั่ง "ประวัติ"
+    if (text === 'ประวัติ' || text.toLowerCase() === 'history') {
+      const history = await getDailyHistory(userId);
+      
+      if (history.length === 0) {
+        return client.replyMessage(event.replyToken, {
+          type: 'text',
+          text: 'ยังไม่มีประวัติการบันทึกความดันครับ\n\nส่งค่าความดันในรูปแบบ "120/80" เพื่อเริ่มบันทึก'
+        });
+      }
+
+      const flexMessage = createHistoryFlexMessage(history);
+      return client.replyMessage(event.replyToken, flexMessage);
+    }
+
+    // ตรวจสอบรูปแบบ 120/80
+    const bpMatch = text.match(/^(\d{2,3})\s*\/\s*(\d{2,3})$/);
     
-    if (history.length === 0) {
+    if (!bpMatch) {
       return client.replyMessage(event.replyToken, {
         type: 'text',
-        text: 'ยังไม่มีประวัติการบันทึกความดันครับ\n\nส่งค่าความดันในรูปแบบ "120/80" เพื่อเริ่มบันทึก'
+        text: '❌ รูปแบบไม่ถูกต้อง\n\nกรุณาส่งค่าความดันในรูปแบบ:\n"120/80"\n\nหรือพิมพ์ "ประวัติ" เพื่อดูประวัติการบันทึก'
       });
     }
 
-    const flexMessage = createHistoryFlexMessage(history);
+    const systolic = parseInt(bpMatch[1]);
+    const diastolic = parseInt(bpMatch[2]);
+
+    // ตรวจสอบค่าที่เป็นไปได้
+    if (systolic < 50 || systolic > 250 || diastolic < 30 || diastolic > 150) {
+      return client.replyMessage(event.replyToken, {
+        type: 'text',
+        text: '⚠️ ค่าความดันไม่อยู่ในช่วงที่เป็นไปได้\n\nโปรดตรวจสอบค่าที่วัดได้อีกครั้ง'
+      });
+    }
+
+    // วิเคราะห์และบันทึก
+    const analysis = analyzeBP(systolic, diastolic);
+    await saveBPRecord(userId, systolic, diastolic);
+
+    const date = new Date().toLocaleDateString('th-TH', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+
+    const flexMessage = createBPFlexMessage(systolic, diastolic, analysis, date);
     return client.replyMessage(event.replyToken, flexMessage);
-  }
 
-  // ตรวจสอบรูปแบบ 120/80
-  const bpMatch = text.match(/^(\d{2,3})\s*\/\s*(\d{2,3})$/);
-  
-  if (!bpMatch) {
+  } catch (error) {
+    console.error('Error handling event:', error);
     return client.replyMessage(event.replyToken, {
       type: 'text',
-      text: '❌ รูปแบบไม่ถูกต้อง\n\nกรุณาส่งค่าความดันในรูปแบบ:\n"120/80"\n\nหรือพิมพ์ "ประวัติ" เพื่อดูประวัติการบันทึก'
+      text: 'ขออภัยครับ เกิดข้อผิดพลาดในระบบ กรุณาลองใหม่อีกครั้ง'
     });
   }
-
-  const systolic = parseInt(bpMatch[1]);
-  const diastolic = parseInt(bpMatch[2]);
-
-  if (systolic < 50 || systolic > 250 || diastolic < 30 || diastolic > 150) {
-    return client.replyMessage(event.replyToken, {
-      type: 'text',
-      text: '⚠️ ค่าความดันไม่อยู่ในช่วงที่เป็นไปได้\n\nโปรดตรวจสอบค่าที่วัดได้อีกครั้ง'
-    });
-  }
-
-  // วิเคราะห์และบันทึก
-  const analysis = analyzeBP(systolic, diastolic);
-  await saveBPRecord(userId, systolic, diastolic);
-
-  const date = new Date().toLocaleDateString('th-TH', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric'
-  });
-
-  const flexMessage = createBPFlexMessage(systolic, diastolic, analysis, date);
-  return client.replyMessage(event.replyToken, flexMessage);
 }
 
-// Health check
+// Health check endpoint
 app.get("/", (req, res) => {
   res.send("Blood Pressure LINE Bot is running!");
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ error: "Not found" });
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+  console.error('Server error:', err);
+  res.status(500).json({ error: "Internal Server Error" });
 });
 
 const PORT = process.env.PORT || 3000;

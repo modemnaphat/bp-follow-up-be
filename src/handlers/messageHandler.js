@@ -26,6 +26,10 @@ async function handleEvent(event) {
     // หาหรือสร้าง user
     const userId = await getOrCreateUser(lineUserId, profile);
 
+    if (text === 'ระดับค่าความดันโลหิต' || text === 'ปัจจัยเสี่ยง' || text === 'วิธีการป้องกัน') {
+      return null;
+    }
+
     // คำสั่ง "ประวัติ"
     if (text === 'ประวัติ' || text.toLowerCase() === 'history') {
       const history = await getDailyHistory(userId);

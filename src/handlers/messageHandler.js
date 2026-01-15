@@ -6,11 +6,32 @@ const { createBPFlexMessage } = require('../messages/bpFlexMessage');
 const { createHistoryFlexMessage } = require('../messages/historyFlexMessage');
 
 async function handleEvent(event) {
-  if (event.type !== 'message' || event.message.type !== 'text') {
+  // ========================================
+  // ตรวจสอบว่าเป็น message หรือไม่
+  // ========================================
+  if (event.type !== 'message') {
     return null;
   }
 
   const lineUserId = event.source.userId;
+
+  // ========================================
+  // ถ้าส่งรูปภาพมา → แจ้ง error
+  // ========================================
+  if (event.message.type === 'image') {
+    return client.replyMessage(event.replyToken, {
+      type: 'text',
+      text: '❌ ขออภัย รูปแบบข้อมูลไม่ถูกต้อง\n\nกรุณาระบุค่าความดันโลหิตในรูปแบบตัวเลข เช่น:\n"120/80"\n\nหรือพิมพ์คำว่า "ประวัติ" เพื่อดูประวัติการบันทึกข้อมูล'
+    });
+  }
+
+  // ========================================
+  // ถ้าไม่ใช่ text message → ไม่ตอบ
+  // ========================================
+  if (event.message.type !== 'text') {
+    return null;
+  }
+
   const text = event.message.text.trim();
 
   try {
@@ -36,7 +57,7 @@ async function handleEvent(event) {
     // ========================================
     // 2. คำสั่ง "ประวัติ"
     // ========================================
-    const historyKeywords = ['ประวัติ', 'ประวัติการวัดความดันโลหิต', 'history'];
+    const historyKeywords = ['ประวัติ', 'ประวัติการวัด', 'ประวัติการวัดความดันโลหิต', 'history'];
     if (historyKeywords.some(keyword => text.toLowerCase().includes(keyword.toLowerCase()))) {
       const history = await getDailyHistory(userId);
       
@@ -65,7 +86,7 @@ async function handleEvent(event) {
     if (attemptedBPInput && !bpMatch) {
       return client.replyMessage(event.replyToken, {
         type: 'text',
-        text: '❌ ขออภัย รูปแบบข้อมูลไม่ถูกต้อง\n\กรุณาระบุค่าความดันโลหิตในรูปแบบตัวเลข เช่น:\n"120/80"\n\nหรือพิมพ์คำว่า "ประวัติ" เพื่อดูประวัติการบันทึกข้อมูล'
+        text: '❌ รูปแบบไม่ถูกต้อง\n\nกรุณาส่งค่าความดันในรูปแบบ:\n"120/80"\n\n(ใช้เครื่องหมาย / เท่านั้น และใส่ค่าเพียง 2 ตัว)\n\nหรือพิมพ์ "ประวัติ" เพื่อดูประวัติการบันทึก'
       });
     }
 

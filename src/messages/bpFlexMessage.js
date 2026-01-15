@@ -83,7 +83,8 @@ function createBPFlexMessage(systolic, diastolic, analysis, date) {
                     type: 'text',
                     text: 'เกณฑ์ระดับความดันโลหิตสูง',
                     size: 'xs',
-                    color: '#8B8B8B'
+                    color: '#8B8B8B',
+                    flex: 3
                   },
                   {
                     type: 'text',
@@ -91,7 +92,8 @@ function createBPFlexMessage(systolic, diastolic, analysis, date) {
                     size: 'xs',
                     weight: 'bold',
                     align: 'end',
-                    color: analysis.color
+                    color: analysis.color,
+                    flex: 2
                   }
                 ]
               },

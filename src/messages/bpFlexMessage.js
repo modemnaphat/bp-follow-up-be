@@ -1,7 +1,7 @@
 function createBPFlexMessage(systolic, diastolic, analysis, date) {
   return {
     type: 'flex',
-    altText: `ผลการวัดความดัน ${systolic}/${diastolic}`,
+    altText: `ผลการวัดความดันโลหิต ${systolic}/${diastolic}`,
     contents: {
       type: 'bubble',
       size: 'kilo',
@@ -11,7 +11,7 @@ function createBPFlexMessage(systolic, diastolic, analysis, date) {
         contents: [
           {
             type: 'text',
-            text: 'ผลการวัดความดัน',
+            text: 'ผลการวัดความดันโลหิต',
             color: '#FFFFFF',
             size: 'sm',
             weight: 'bold'

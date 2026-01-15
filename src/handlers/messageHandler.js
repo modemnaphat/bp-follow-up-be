@@ -26,12 +26,18 @@ async function handleEvent(event) {
     // หาหรือสร้าง user
     const userId = await getOrCreateUser(lineUserId, profile);
 
+    // ========================================
+    // 1. ตรวจสอบ Rich Menu - ไม่ตอบ
+    // ========================================
     if (text === 'ระดับค่าความดันโลหิต' || text === 'ปัจจัยเสี่ยง' || text === 'วิธีการป้องกัน') {
       return null;
     }
 
-    // คำสั่ง "ประวัติ"
-    if (text === 'ประวัติ' || text.toLowerCase() === 'history') {
+    // ========================================
+    // 2. คำสั่ง "ประวัติ"
+    // ========================================
+    const historyKeywords = ['ประวัติ', 'ประวัติการวัดความดันโลหิต', 'history'];
+    if (historyKeywords.some(keyword => text.toLowerCase().includes(keyword.toLowerCase()))) {
       const history = await getDailyHistory(userId);
       
       if (history.length === 0) {
@@ -45,24 +51,40 @@ async function handleEvent(event) {
       return client.replyMessage(event.replyToken, flexMessage);
     }
 
-    // ตรวจสอบรูปแบบ 120/80
+    // ========================================
+    // 3. ตรวจสอบว่า user พยายามพิมพ์ตัวเลขหรือไม่
+    // ========================================
+    const attemptedBPInput = /\d/.test(text) && /[\/\-]/.test(text);
+
+    // ========================================
+    // 4. ตรวจสอบรูปแบบที่ถูกต้อง: 120/80
+    // ========================================
     const bpMatch = text.match(/^(\d{2,3})\s*\/\s*(\d{2,3})$/);
     
-    if (!bpMatch) {
+    // ถ้าพยายามพิมพ์ตัวเลขแต่รูปแบบผิด
+    if (attemptedBPInput && !bpMatch) {
       return client.replyMessage(event.replyToken, {
         type: 'text',
-        text: '❌ รูปแบบไม่ถูกต้อง\n\nกรุณาส่งค่าความดันในรูปแบบ:\n"120/80"\n\nหรือพิมพ์ "ประวัติ" เพื่อดูประวัติการบันทึก'
+        text: '❌ ขออภัย รูปแบบข้อมูลไม่ถูกต้อง\n\กรุณาระบุค่าความดันโลหิตในรูปแบบตัวเลข เช่น:\n"120/80"\n\nหรือพิมพ์คำว่า "ประวัติ" เพื่อดูประวัติการบันทึกข้อมูล'
       });
     }
 
+    // ถ้าไม่ใช่รูปแบบที่ถูกต้อง และไม่ได้พยายามพิมพ์ตัวเลข = ไม่ตอบ
+    if (!bpMatch) {
+      return null;
+    }
+
+    // ========================================
+    // 5. บันทึกและตอบกลับค่าความดันโลหิต
+    // ========================================
     const systolic = parseInt(bpMatch[1]);
     const diastolic = parseInt(bpMatch[2]);
 
-    // ตรวจสอบค่า
+    // ตรวจสอบค่าในช่วงที่เป็นไปได้
     if (systolic < 50 || systolic > 250 || diastolic < 30 || diastolic > 150) {
       return client.replyMessage(event.replyToken, {
         type: 'text',
-        text: '⚠️ ค่าความดันไม่อยู่ในช่วงที่เป็นไปได้\n\nโปรดตรวจสอบค่าที่วัดได้อีกครั้ง'
+        text: '⚠️ ค่าความดันไม่อยู่ในช่วงที่เป็นไปได้\n\n✅ ค่าปกติควรอยู่ในช่วง:\n• ตัวบน (Systolic): 50-250\n• ตัวล่าง (Diastolic): 30-150\n\nโปรดตรวจสอบค่าที่วัดได้อีกครั้ง'
       });
     }
 
@@ -73,7 +95,9 @@ async function handleEvent(event) {
     const date = new Date().toLocaleDateString('th-TH', {
       day: 'numeric',
       month: 'short',
-      year: 'numeric'
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
 
     const flexMessage = createBPFlexMessage(systolic, diastolic, analysis, date);

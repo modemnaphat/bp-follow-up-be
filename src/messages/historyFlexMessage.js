@@ -50,7 +50,7 @@ function createHistoryFlexMessage(historyData) {
 
   return {
     type: 'flex',
-    altText: 'ประวัติการวัดความดัน',
+    altText: 'ประวัติการวัดความดันโลหิต',
     contents: {
       type: 'bubble',
       size: 'kilo',
@@ -60,7 +60,7 @@ function createHistoryFlexMessage(historyData) {
         contents: [
           {
             type: 'text',
-            text: '📊 ประวัติการวัดความดัน',
+            text: '📊 ประวัติการวัดความดันโลหิต',
             color: '#FFFFFF',
             size: 'md',
             weight: 'bold'

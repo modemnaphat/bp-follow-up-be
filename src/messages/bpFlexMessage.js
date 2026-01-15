@@ -81,7 +81,7 @@ function createBPFlexMessage(systolic, diastolic, analysis, date) {
                 contents: [
                   {
                     type: 'text',
-                    text: 'เกณฑ์ระดับ',
+                    text: 'เกณฑ์ระดับความดันโลหิตสูง',
                     size: 'xs',
                     color: '#8B8B8B'
                   },

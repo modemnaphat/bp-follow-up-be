@@ -118,7 +118,8 @@ async function handleEvent(event) {
       month: 'short',
       year: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
+      timeZone: 'Asia/Bangkok',
     });
 
     const flexMessage = createBPFlexMessage(systolic, diastolic, analysis, date);

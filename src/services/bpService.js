@@ -42,7 +42,8 @@ async function getDailyHistory(userId, days = 7) {
     const date = new Date(record.created_at).toLocaleDateString('th-TH', {
       day: 'numeric',
       month: 'short',
-      year: '2-digit'
+      year: '2-digit',
+      timeZone: 'Asia/Bangkok',
     });
     
     if (!grouped[date]) {

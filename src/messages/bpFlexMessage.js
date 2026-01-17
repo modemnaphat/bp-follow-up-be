@@ -55,19 +55,26 @@ function createBPFlexMessage(systolic, diastolic, analysis, date) {
                 size: "xl",
                 weight: "bold",
                 color: analysis.color,
+                flex: 0,
+              },
+              {
+                type: "box",
+                layout: "vertical",
+                contents: [],
+                flex: 1,
               },
               {
                 type: "text",
                 text: "mmHg",
-                weight: "bold",
                 size: "xs",
                 color: "#8B8B8B",
-                // ⭐ เอา gravity และ margin ออก
+                weight: "bold",
+                flex: 0,
+                align: "end",
               },
             ],
             margin: "xs",
-            justifyContent: "space-between", // ⭐ เพิ่มบรรทัดนี้
-            alignItems: "center", // ⭐ เพิ่มบรรทัดนี้
+            alignItems: "center",
           },
           {
             type: "separator",

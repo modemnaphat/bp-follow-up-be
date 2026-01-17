@@ -149,7 +149,7 @@ async function handleEvent(event) {
     console.error("Error handling event:", error);
     return client.replyMessage(event.replyToken, {
       type: "text",
-      text: "ขออภัยครับ เกิดข้อผิดพลาดในระบบ กรุณาลองใหม่อีกครั้ง",
+      text: "ขออภัย เกิดข้อผิดพลาดในระบบ กรุณาลองใหม่อีกครั้ง",
     });
   }
 }

@@ -1,15 +1,15 @@
-const { client } = require('../config/line');
-const { getOrCreateUser } = require('../services/userService');
-const { saveBPRecord, getDailyHistory } = require('../services/bpService');
-const { analyzeBP } = require('../utils/bpAnalyzer');
-const { createBPFlexMessage } = require('../messages/bpFlexMessage');
-const { createHistoryFlexMessage } = require('../messages/historyFlexMessage');
+const { client } = require("../config/line");
+const { getOrCreateUser } = require("../services/userService");
+const { saveBPRecord, getDailyHistory } = require("../services/bpService");
+const { analyzeBP } = require("../utils/bpAnalyzer");
+const { createBPFlexMessage } = require("../messages/bpFlexMessage");
+const { createHistoryFlexMessage } = require("../messages/historyFlexMessage");
 
 async function handleEvent(event) {
   // ========================================
   // ตรวจสอบว่าเป็น message หรือไม่
   // ========================================
-  if (event.type !== 'message') {
+  if (event.type !== "message") {
     return null;
   }
 
@@ -18,17 +18,17 @@ async function handleEvent(event) {
   // ========================================
   // ถ้าส่งรูปภาพมา → แจ้ง error
   // ========================================
-  if (event.message.type === 'image') {
+  if (event.message.type === "image") {
     return client.replyMessage(event.replyToken, {
-      type: 'text',
-      text: '❌ ขออภัย รูปแบบข้อมูลไม่ถูกต้อง\n\nกรุณาระบุค่าความดันโลหิตในรูปแบบตัวเลข เช่น:\n"120/80"\n\nหรือพิมพ์คำว่า "ประวัติ" เพื่อดูประวัติการบันทึกข้อมูล'
+      type: "text",
+      text: '❌ ขออภัย รูปแบบข้อมูลไม่ถูกต้อง\n\nกรุณาระบุค่าความดันโลหิตในรูปแบบตัวเลข เช่น:\n"120/80"\n\nหรือพิมพ์คำว่า "ประวัติ" เพื่อดูประวัติการบันทึกข้อมูล',
     });
   }
 
   // ========================================
   // ถ้าไม่ใช่ text message → ไม่ตอบ
   // ========================================
-  if (event.message.type !== 'text') {
+  if (event.message.type !== "text") {
     return null;
   }
 
@@ -40,7 +40,7 @@ async function handleEvent(event) {
     try {
       profile = await client.getProfile(lineUserId);
     } catch (err) {
-      console.error('Error getting profile:', err);
+      console.error("Error getting profile:", err);
       profile = null;
     }
 
@@ -50,23 +50,39 @@ async function handleEvent(event) {
     // ========================================
     // 1. ตรวจสอบ Rich Menu - ไม่ตอบ
     // ========================================
-    if (text === 'ระดับค่าความดันโลหิต' || text === 'ปัจจัยเสี่ยง' || text === 'วิธีการป้องกัน') {
+    if (
+      text === "ระดับค่าความดันโลหิต" ||
+      text === "ปัจจัยเสี่ยง" ||
+      text === "วิธีการป้องกัน"
+    ) {
       return null;
     }
 
     // ========================================
     // 2. คำสั่ง "ประวัติ"
     // ========================================
-    const historyKeywords = ['ประวัติ', 'ประวัติการวัด', 'ประวัติการวัดความดันโลหิต', 'history'];
-    if (historyKeywords.some(keyword => text.toLowerCase().includes(keyword.toLowerCase()))) {
+    const historyKeywords = [
+      "ประวัติ",
+      "ประวัติการวัด",
+      "ประวัติการวัดความดันโลหิต",
+      "history",
+    ];
+    if (
+      historyKeywords.some((keyword) =>
+        text.toLowerCase().includes(keyword.toLowerCase())
+      )
+    ) {
       const history = await getDailyHistory(userId);
-      
+
       if (history.length === 0) {
         return client.replyMessage(event.replyToken, {
-          type: 'text',
-          text: 'ยังไม่มีประวัติการบันทึกความดัน\n\nส่งค่าความดันในรูปแบบ "120/80" เพื่อเริ่มบันทึก'
+          type: "text",
+          text: 'ยังไม่มีประวัติการบันทึกความดัน\n\nส่งค่าความดันในรูปแบบ "120/80" เพื่อเริ่มบันทึก',
         });
       }
+
+      // เรียงจากเก่า → ใหม่ (เก่าขึ้นก่อน)
+      history.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
 
       const flexMessage = createHistoryFlexMessage(history);
       return client.replyMessage(event.replyToken, flexMessage);
@@ -81,12 +97,12 @@ async function handleEvent(event) {
     // 4. ตรวจสอบรูปแบบที่ถูกต้อง: 120/80
     // ========================================
     const bpMatch = text.match(/^(\d{2,3})\s*\/\s*(\d{2,3})$/);
-    
+
     // ถ้าพยายามพิมพ์ตัวเลขแต่รูปแบบผิด
     if (attemptedBPInput && !bpMatch) {
       return client.replyMessage(event.replyToken, {
-        type: 'text',
-        text: '❌ รูปแบบไม่ถูกต้อง\n\nกรุณาส่งค่าความดันในรูปแบบ:\n"120/80"\n\n(ใช้เครื่องหมาย / เท่านั้น และใส่ค่าเพียง 2 ตัว)\n\nหรือพิมพ์ "ประวัติ" เพื่อดูประวัติการบันทึก'
+        type: "text",
+        text: '❌ รูปแบบไม่ถูกต้อง\n\nกรุณาส่งค่าความดันในรูปแบบ:\n"120/80"\n\n(ใช้เครื่องหมาย / เท่านั้น และใส่ค่าเพียง 2 ตัว)\n\nหรือพิมพ์ "ประวัติ" เพื่อดูประวัติการบันทึก',
       });
     }
 
@@ -104,8 +120,8 @@ async function handleEvent(event) {
     // ตรวจสอบค่าในช่วงที่เป็นไปได้
     if (systolic < 50 || systolic > 250 || diastolic < 30 || diastolic > 150) {
       return client.replyMessage(event.replyToken, {
-        type: 'text',
-        text: '⚠️ ค่าความดันไม่อยู่ในช่วงที่เป็นไปได้\n\n✅ ค่าปกติควรอยู่ในช่วง:\n• ตัวบน (Systolic): 50-250\n• ตัวล่าง (Diastolic): 30-150\n\nโปรดตรวจสอบค่าที่วัดได้อีกครั้ง'
+        type: "text",
+        text: "⚠️ ค่าความดันไม่อยู่ในช่วงที่เป็นไปได้\n\n✅ ค่าปกติควรอยู่ในช่วง:\n• ตัวบน (Systolic): 50-250\n• ตัวล่าง (Diastolic): 30-150\n\nโปรดตรวจสอบค่าที่วัดได้อีกครั้ง",
       });
     }
 
@@ -113,23 +129,27 @@ async function handleEvent(event) {
     const analysis = analyzeBP(systolic, diastolic);
     await saveBPRecord(userId, systolic, diastolic);
 
-    const date = new Date().toLocaleDateString('th-TH', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      timeZone: 'Asia/Bangkok',
+    const date = new Date().toLocaleDateString("th-TH", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "Asia/Bangkok",
     });
 
-    const flexMessage = createBPFlexMessage(systolic, diastolic, analysis, date);
+    const flexMessage = createBPFlexMessage(
+      systolic,
+      diastolic,
+      analysis,
+      date
+    );
     return client.replyMessage(event.replyToken, flexMessage);
-
   } catch (error) {
-    console.error('Error handling event:', error);
+    console.error("Error handling event:", error);
     return client.replyMessage(event.replyToken, {
-      type: 'text',
-      text: 'ขออภัยครับ เกิดข้อผิดพลาดในระบบ กรุณาลองใหม่อีกครั้ง'
+      type: "text",
+      text: "ขออภัยครับ เกิดข้อผิดพลาดในระบบ กรุณาลองใหม่อีกครั้ง",
     });
   }
 }

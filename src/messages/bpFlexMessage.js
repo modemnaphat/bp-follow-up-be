@@ -4,7 +4,7 @@ function createBPFlexMessage(systolic, diastolic, analysis, date) {
     altText: `ผลการวัดความดันโลหิต ${systolic}/${diastolic}`,
     contents: {
       type: 'bubble',
-      size: 'kilo',
+      size: 'mega',
       header: {
         type: 'box',
         layout: 'vertical',
@@ -81,7 +81,7 @@ function createBPFlexMessage(systolic, diastolic, analysis, date) {
                 contents: [
                   {
                     type: 'text',
-                    text: 'เกณฑ์ระดับความดันโลหิตสูง',
+                    text: 'เกณฑ์ระดับ',
                     size: 'xs',
                     color: '#8B8B8B',
                     flex: 3
@@ -97,27 +97,27 @@ function createBPFlexMessage(systolic, diastolic, analysis, date) {
                   }
                 ]
               },
-              {
-                type: 'box',
-                layout: 'horizontal',
-                contents: [
-                  {
-                    type: 'text',
-                    text: 'ความเสี่ยง',
-                    size: 'xs',
-                    color: '#8B8B8B'
-                  },
-                  {
-                    type: 'text',
-                    text: analysis.risk,
-                    size: 'xs',
-                    weight: 'bold',
-                    align: 'end',
-                    color: analysis.color
-                  }
-                ],
-                margin: 'sm'
-              }
+              // {
+              //   type: 'box',
+              //   layout: 'horizontal',
+              //   contents: [
+              //     {
+              //       type: 'text',
+              //       text: 'ความเสี่ยง',
+              //       size: 'xs',
+              //       color: '#8B8B8B'
+              //     },
+              //     {
+              //       type: 'text',
+              //       text: analysis.risk,
+              //       size: 'xs',
+              //       weight: 'bold',
+              //       align: 'end',
+              //       color: analysis.color
+              //     }
+              //   ],
+              //   margin: 'sm'
+              // }
             ],
             margin: 'md'
           },

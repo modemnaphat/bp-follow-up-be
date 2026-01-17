@@ -64,7 +64,7 @@ async function handleEvent(event) {
       if (history.length === 0) {
         return client.replyMessage(event.replyToken, {
           type: 'text',
-          text: 'ยังไม่มีประวัติการบันทึกความดันครับ\n\nส่งค่าความดันในรูปแบบ "120/80" เพื่อเริ่มบันทึก'
+          text: 'ยังไม่มีประวัติการบันทึกความดัน\n\nส่งค่าความดันในรูปแบบ "120/80" เพื่อเริ่มบันทึก'
         });
       }
 

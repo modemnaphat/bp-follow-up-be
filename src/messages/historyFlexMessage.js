@@ -6,7 +6,7 @@ function createHistoryFlexMessage(historyData) {
       {
         type: 'box',
         layout: 'vertical',
-        size: 'mega',
+        size: 'xxl',
         contents: [
           {
             type: 'text',

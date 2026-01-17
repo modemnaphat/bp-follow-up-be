@@ -4,7 +4,7 @@ function createBPFlexMessage(systolic, diastolic, analysis, date) {
     altText: `ผลการวัดความดันโลหิต ${systolic}/${diastolic}`,
     contents: {
       type: "bubble",
-      size: "mega",
+      size: "giga",
       header: {
         type: "box",
         layout: "vertical",

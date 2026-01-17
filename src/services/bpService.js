@@ -29,7 +29,7 @@ async function getDailyHistory(userId, days = 7) {
     .select('*')
     .eq('user_id', userId)
     .gte('created_at', startDate.toISOString())
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: true });
 
   if (error) {
     console.error('Error fetching history:', error);

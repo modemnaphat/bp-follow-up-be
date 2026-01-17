@@ -1,101 +1,103 @@
 function createBPFlexMessage(systolic, diastolic, analysis, date) {
   return {
-    type: 'flex',
+    type: "flex",
     altText: `ผลการวัดความดันโลหิต ${systolic}/${diastolic}`,
     contents: {
-      type: 'bubble',
-      size: 'mega',
+      type: "bubble",
+      size: "mega",
       header: {
-        type: 'box',
-        layout: 'vertical',
+        type: "box",
+        layout: "vertical",
         contents: [
           {
-            type: 'text',
-            text: 'ผลการวัดความดันโลหิต',
-            color: '#FFFFFF',
-            size: 'sm',
-            weight: 'bold'
+            type: "text",
+            text: "ผลการวัดความดันโลหิต",
+            color: "#FFFFFF",
+            size: "sm",
+            weight: "bold",
           },
           {
-            type: 'text',
+            type: "text",
             text: date,
-            color: '#FFFFFF',
-            size: 'lg',
-            weight: 'bold',
-            margin: 'sm'
-          }
+            color: "#FFFFFF",
+            size: "lg",
+            weight: "bold",
+            margin: "sm",
+          },
         ],
         backgroundColor: analysis.color,
-        paddingAll: '15px'
+        paddingAll: "15px",
       },
       body: {
-        type: 'box',
-        layout: 'vertical',
+        type: "box",
+        layout: "vertical",
         contents: [
           {
-            type: 'box',
-            layout: 'horizontal',
+            type: "box",
+            layout: "horizontal",
             contents: [
               {
-                type: 'text',
-                text: '🩺 ความดันโลหิต',
-                size: 'xs',
-                color: '#8B8B8B',
-                flex: 0
-              }
-            ]
+                type: "text",
+                text: "🩺 ความดันโลหิต",
+                size: "xs",
+                color: "#8B8B8B",
+                flex: 0,
+              },
+            ],
           },
           {
-            type: 'box',
-            layout: 'horizontal',
+            type: "box",
+            layout: "horizontal",
             contents: [
               {
-                type: 'text',
+                type: "text",
                 text: `${systolic}/${diastolic}`,
-                size: 'xl',
-                weight: 'bold',
-                color: analysis.color
+                size: "xl",
+                weight: "bold",
+                color: analysis.color,
               },
               {
-                type: 'text',
-                text: 'mmHg',
-                size: 'xs',
-                color: '#8B8B8B',
-                gravity: 'bottom',
-                margin: 'sm'
-              }
+                type: "text",
+                text: "mmHg",
+                weight: "bold",
+                size: "xs",
+                color: "#8B8B8B",
+                // ⭐ เอา gravity และ margin ออก
+              },
             ],
-            margin: 'xs'
+            margin: "xs",
+            justifyContent: "space-between", // ⭐ เพิ่มบรรทัดนี้
+            alignItems: "center", // ⭐ เพิ่มบรรทัดนี้
           },
           {
-            type: 'separator',
-            margin: 'md'
+            type: "separator",
+            margin: "md",
           },
           {
-            type: 'box',
-            layout: 'vertical',
+            type: "box",
+            layout: "vertical",
             contents: [
               {
-                type: 'box',
-                layout: 'horizontal',
+                type: "box",
+                layout: "horizontal",
                 contents: [
                   {
-                    type: 'text',
-                    text: 'เกณฑ์ระดับ',
-                    size: 'xs',
-                    color: '#8B8B8B',
-                    flex: 3
+                    type: "text",
+                    text: "เกณฑ์ระดับ",
+                    size: "xs",
+                    color: "#8B8B8B",
+                    flex: 3,
                   },
                   {
-                    type: 'text',
+                    type: "text",
                     text: analysis.level,
-                    size: 'xs',
-                    weight: 'bold',
-                    align: 'end',
+                    size: "xs",
+                    weight: "bold",
+                    align: "end",
                     color: analysis.color,
-                    flex: 2
-                  }
-                ]
+                    flex: 2,
+                  },
+                ],
               },
               // {
               //   type: 'box',
@@ -119,56 +121,56 @@ function createBPFlexMessage(systolic, diastolic, analysis, date) {
               //   margin: 'sm'
               // }
             ],
-            margin: 'md'
+            margin: "md",
           },
           {
-            type: 'separator',
-            margin: 'md'
+            type: "separator",
+            margin: "md",
           },
           {
-            type: 'box',
-            layout: 'vertical',
+            type: "box",
+            layout: "vertical",
             contents: [
               {
-                type: 'text',
-                text: 'คำแนะนำ',
-                size: 'xs',
-                color: '#8B8B8B',
-                margin: 'sm'
+                type: "text",
+                text: "คำแนะนำ",
+                size: "xs",
+                color: "#8B8B8B",
+                margin: "sm",
               },
               {
-                type: 'text',
+                type: "text",
                 text: analysis.advice,
-                size: 'xs',
+                size: "xs",
                 wrap: true,
-                color: '#666666',
-                margin: 'xs'
-              }
+                color: "#666666",
+                margin: "xs",
+              },
             ],
-            margin: 'md'
-          }
+            margin: "md",
+          },
         ],
-        paddingAll: '15px'
+        paddingAll: "15px",
       },
       footer: {
-        type: 'box',
-        layout: 'vertical',
+        type: "box",
+        layout: "vertical",
         contents: [
           {
-            type: 'button',
+            type: "button",
             action: {
-              type: 'message',
-              label: 'ดูประวัติ',
-              text: 'ประวัติ'
+              type: "message",
+              label: "ดูประวัติ",
+              text: "ประวัติ",
             },
-            style: 'primary',
+            style: "primary",
             color: analysis.color,
-            height: 'sm'
-          }
+            height: "sm",
+          },
         ],
-        paddingAll: '10px'
-      }
-    }
+        paddingAll: "10px",
+      },
+    },
   };
 }
 

@@ -60,7 +60,7 @@ async function handleEvent(event) {
 
     if (
       historyKeywords.some((keyword) =>
-        text.toLowerCase().includes(keyword.toLowerCase())
+        text.toLowerCase().includes(keyword.toLowerCase()),
       )
     ) {
       const history = await getDailyHistory(userId);
@@ -77,7 +77,8 @@ async function handleEvent(event) {
     }
 
     // ตรวจสอบว่า user พยายามพิมพ์ตัวเลขหรือไม่
-    const attemptedBPInput = /\d/.test(text) && /[\/\-]/.test(text);
+    // const attemptedBPInput = /\d/.test(text) && /[\/\-]/.test(text);
+    const attemptedBPInput = /\d+\s*[^\d\s]+\s*\d+/.test(text);
 
     // ตรวจสอบรูปแบบที่ถูกต้อง: 120/80
     const bpMatch = text.match(/^(\d{2,3})\s*\/\s*(\d{2,3})$/);
@@ -123,7 +124,7 @@ async function handleEvent(event) {
       systolic,
       diastolic,
       analysis,
-      date
+      date,
     );
 
     return client.replyMessage(event.replyToken, flexMessage);

@@ -1,5 +1,8 @@
 function createHistoryFlexMessage(historyData) {
-  const contents = historyData.map(record => ({
+  const { dailyRecords, weeklyAverage } = historyData;
+
+  // สร้าง daily list contents
+  const dailyContents = dailyRecords.map(record => ({
     type: 'box',
     layout: 'horizontal',
     contents: [
@@ -48,6 +51,107 @@ function createHistoryFlexMessage(historyData) {
     margin: 'sm'
   }));
 
+  // สร้าง weekly summary section
+  const bodyContents = [];
+
+  // ถ้ามีข้อมูลค่าเฉลี่ย 7 วัน
+  if (weeklyAverage) {
+    bodyContents.push(
+      // Weekly Summary Card
+      {
+        type: 'box',
+        layout: 'vertical',
+        contents: [
+          // แถวบน: หัวข้อ
+          {
+            type: 'box',
+            layout: 'horizontal',
+            contents: [
+              {
+                type: 'text',
+                text: `ค่าเฉลี่ย ${weeklyAverage.daysCount} วัน`,
+                size: 'xs',
+                color: '#FFFFFF',
+                weight: 'bold',
+                flex: 1
+              },
+              {
+                type: 'text',
+                text: 'เกณฑ์ระดับ',
+                size: 'xs',
+                color: '#FFFFFF',
+                weight: 'bold',
+                align: 'end',
+                flex: 1
+              }
+            ]
+          },
+          // แถวล่าง: ค่าจริง
+          {
+            type: 'box',
+            layout: 'horizontal',
+            contents: [
+              {
+                type: 'box',
+                layout: 'baseline',
+                contents: [
+                  {
+                    type: 'text',
+                    text: `${weeklyAverage.avgSystolic}/${weeklyAverage.avgDiastolic}`,
+                    size: 'xxl',
+                    weight: 'bold',
+                    color: '#FFFFFF',
+                    flex: 0
+                  },
+                  {
+                    type: 'text',
+                    text: 'mmHg',
+                    size: 'xs',
+                    color: '#FFFFFF',
+                    margin: 'sm',
+                    flex: 0
+                  }
+                ],
+                flex: 1
+              },
+              {
+                type: 'text',
+                text: weeklyAverage.level,
+                size: 'xxl',
+                weight: 'bold',
+                color: '#FFFFFF',
+                align: 'end',
+                flex: 1
+              }
+            ],
+            margin: 'md'
+          }
+        ],
+        backgroundColor: weeklyAverage.color,
+        cornerRadius: 'lg',
+        paddingAll: '15px',
+        margin: 'none'
+      },
+      // Separator
+      {
+        type: 'separator',
+        margin: 'lg'
+      },
+      // Daily Records Header
+      {
+        type: 'text',
+        text: 'สรุปรายวัน',
+        size: 'xs',
+        color: '#8B8B8B',
+        weight: 'bold',
+        margin: 'lg'
+      }
+    );
+  }
+
+  // เพิ่ม daily records
+  bodyContents.push(...dailyContents);
+
   return {
     type: 'flex',
     altText: 'ประวัติการวัดความดันโลหิต',
@@ -72,15 +176,15 @@ function createHistoryFlexMessage(historyData) {
       body: {
         type: 'box',
         layout: 'vertical',
-        contents: [
+        contents: bodyContents.length > 0 ? bodyContents : [
           {
             type: 'text',
-            text: 'สรุปรายวัน (7 วันล่าสุด)',
-            size: 'xs',
+            text: 'ยังไม่มีข้อมูลการวัดความดัน',
+            size: 'sm',
             color: '#8B8B8B',
-            margin: 'sm'
-          },
-          ...contents
+            align: 'center',
+            margin: 'lg'
+          }
         ],
         paddingAll: '15px'
       }

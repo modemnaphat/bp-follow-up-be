@@ -33,7 +33,7 @@ async function getDailyHistory(userId, days = 7) {
 
   if (error) {
     console.error('Error fetching history:', error);
-    return [];
+    return { dailyRecords: [], weeklyAverage: null };
   }
 
   // จัดกลุ่มตามวัน
@@ -56,8 +56,8 @@ async function getDailyHistory(userId, days = 7) {
     grouped[date].diastolic.push(record.diastolic);
   });
 
-  // คำนวณค่าเฉลี่ย
-  return Object.entries(grouped).map(([date, values]) => {
+  // คำนวณค่าเฉลี่ยรายวัน
+  const dailyRecords = Object.entries(grouped).map(([date, values]) => {
     const avgSystolic = Math.round(
       values.systolic.reduce((a, b) => a + b, 0) / values.systolic.length
     );
@@ -74,6 +74,27 @@ async function getDailyHistory(userId, days = 7) {
       color: analysis.color
     };
   });
+
+  // คำนวณค่าเฉลี่ย 7 วัน (จากค่าเฉลี่ยรายวันที่คำนวณแล้ว)
+  let weeklyAverage = null;
+  if (dailyRecords.length > 0) {
+    const totalSystolic = dailyRecords.reduce((sum, record) => sum + record.avgSystolic, 0);
+    const totalDiastolic = dailyRecords.reduce((sum, record) => sum + record.avgDiastolic, 0);
+    const avgSystolic = Math.round(totalSystolic / dailyRecords.length);
+    const avgDiastolic = Math.round(totalDiastolic / dailyRecords.length);
+    const analysis = analyzeBP(avgSystolic, avgDiastolic);
+
+    weeklyAverage = {
+      avgSystolic,
+      avgDiastolic,
+      level: analysis.level,
+      risk: analysis.risk,
+      color: analysis.color,
+      daysCount: dailyRecords.length
+    };
+  }
+
+  return { dailyRecords, weeklyAverage };
 }
 
 module.exports = { saveBPRecord, getDailyHistory };

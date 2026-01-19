@@ -93,7 +93,7 @@ function createHistoryFlexMessage(historyData) {
         contents: [
           {
             type: "text",
-            text: "ค่าเฉลี่ย",
+            text: "ค่าเฉลี่ยความดันโลหิต (7 วันล่าสุด)",
             size: "xs",
             color: "#8B8B8B",
             flex: 2,
@@ -110,14 +110,14 @@ function createHistoryFlexMessage(historyData) {
                 color: weeklyAverage.color,
                 flex: 0,
               },
-              {
-                type: "text",
-                text: "mmHg",
-                size: "xs",
-                color: "#8B8B8B",
-                margin: "sm",
-                flex: 0,
-              },
+              // {
+              //   type: "text",
+              //   text: "mmHg",
+              //   size: "xs",
+              //   color: "#8B8B8B",
+              //   margin: "sm",
+              //   flex: 0,
+              // },
             ],
             flex: 3,
             justifyContent: "flex-end",

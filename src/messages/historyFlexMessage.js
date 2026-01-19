@@ -96,7 +96,8 @@ function createHistoryFlexMessage(historyData) {
             text: "ค่าเฉลี่ยความดันโลหิต",
             size: "xs",
             color: "#8B8B8B",
-            flex: 1,
+            flex: 3,
+            wrap: true,
           },
           {
             type: "text",

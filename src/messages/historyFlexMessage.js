@@ -51,106 +51,91 @@ function createHistoryFlexMessage(historyData) {
     margin: 'sm'
   }));
 
-  // สร้าง weekly summary section
+  // สร้าง body contents
   const bodyContents = [];
 
-  // ถ้ามีข้อมูลค่าเฉลี่ย 7 วัน
+  // เริ่มด้วย Daily Records Header
+  bodyContents.push({
+    type: 'text',
+    text: 'สรุปรายวัน',
+    size: 'xs',
+    color: '#8B8B8B',
+    weight: 'bold',
+    margin: 'none'
+  });
+
+  // เพิ่ม daily records
+  if (dailyContents.length > 0) {
+    bodyContents.push(...dailyContents);
+  } else {
+    bodyContents.push({
+      type: 'text',
+      text: 'ยังไม่มีข้อมูลการวัดความดัน',
+      size: 'sm',
+      color: '#8B8B8B',
+      align: 'center',
+      margin: 'md'
+    });
+  }
+
+  // ถ้ามีข้อมูลค่าเฉลี่ย 7 วัน ใส่ไว้ด้านล่างสุด
   if (weeklyAverage) {
     bodyContents.push(
-      // Weekly Summary Card
-      {
-        type: 'box',
-        layout: 'vertical',
-        contents: [
-          // แถวบน: หัวข้อ
-          {
-            type: 'box',
-            layout: 'horizontal',
-            contents: [
-              {
-                type: 'text',
-                text: `ค่าเฉลี่ย ${weeklyAverage.daysCount} วัน`,
-                size: 'xs',
-                color: '#FFFFFF',
-                weight: 'bold',
-                flex: 1
-              },
-              {
-                type: 'text',
-                text: 'เกณฑ์ระดับ',
-                size: 'xs',
-                color: '#FFFFFF',
-                weight: 'bold',
-                align: 'end',
-                flex: 1
-              }
-            ]
-          },
-          // แถวล่าง: ค่าจริง
-          {
-            type: 'box',
-            layout: 'horizontal',
-            contents: [
-              {
-                type: 'box',
-                layout: 'baseline',
-                contents: [
-                  {
-                    type: 'text',
-                    text: `${weeklyAverage.avgSystolic}/${weeklyAverage.avgDiastolic}`,
-                    size: 'xxl',
-                    weight: 'bold',
-                    color: '#FFFFFF',
-                    flex: 0
-                  },
-                  {
-                    type: 'text',
-                    text: 'mmHg',
-                    size: 'xs',
-                    color: '#FFFFFF',
-                    margin: 'sm',
-                    flex: 0
-                  }
-                ],
-                flex: 1
-              },
-              {
-                type: 'text',
-                text: weeklyAverage.level,
-                size: 'xxl',
-                weight: 'bold',
-                color: '#FFFFFF',
-                align: 'end',
-                flex: 1
-              }
-            ],
-            margin: 'md'
-          }
-        ],
-        backgroundColor: weeklyAverage.color,
-        cornerRadius: 'lg',
-        paddingAll: '15px',
-        margin: 'none'
-      },
       // Separator
       {
         type: 'separator',
         margin: 'lg'
       },
-      // Daily Records Header
+      // ค่าเฉลี่ย 7 วัน
       {
-        type: 'text',
-        text: 'สรุปรายวัน',
-        size: 'xs',
-        color: '#8B8B8B',
-        weight: 'bold',
-        margin: 'lg'
+        type: 'box',
+        layout: 'horizontal',
+        contents: [
+          {
+            type: 'text',
+            text: 'ค่าเฉลี่ย',
+            size: 'xs',
+            color: '#8B8B8B',
+            flex: 2
+          },
+          {
+            type: 'text',
+            text: `${weeklyAverage.avgSystolic}/${weeklyAverage.avgDiastolic} mmHg`,
+            size: 'sm',
+            weight: 'bold',
+            align: 'end',
+            color: weeklyAverage.color,
+            flex: 3
+          }
+        ],
+        margin: 'md'
+      },
+      // เกณฑ์ระดับ
+      {
+        type: 'box',
+        layout: 'horizontal',
+        contents: [
+          {
+            type: 'text',
+            text: 'เกณฑ์ระดับ',
+            size: 'xs',
+            color: '#8B8B8B',
+            flex: 2
+          },
+          {
+            type: 'text',
+            text: weeklyAverage.level,
+            size: 'sm',
+            weight: 'bold',
+            align: 'end',
+            color: weeklyAverage.color,
+            flex: 3
+          }
+        ],
+        margin: 'sm'
       }
     );
   }
-
-  // เพิ่ม daily records
-  bodyContents.push(...dailyContents);
 
   return {
     type: 'flex',
@@ -176,16 +161,7 @@ function createHistoryFlexMessage(historyData) {
       body: {
         type: 'box',
         layout: 'vertical',
-        contents: bodyContents.length > 0 ? bodyContents : [
-          {
-            type: 'text',
-            text: 'ยังไม่มีข้อมูลการวัดความดัน',
-            size: 'sm',
-            color: '#8B8B8B',
-            align: 'center',
-            margin: 'lg'
-          }
-        ],
+        contents: bodyContents,
         paddingAll: '15px'
       }
     }

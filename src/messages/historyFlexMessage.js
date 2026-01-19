@@ -150,7 +150,7 @@ function createHistoryFlexMessage(historyData) {
         contents: [
           {
             type: "text",
-            text: "📋 ประวัติการวัดความดันโลหิต",
+            text: "📊 ประวัติการวัดความดันโลหิต",
             color: "#FFFFFF",
             size: "md",
             weight: "bold",

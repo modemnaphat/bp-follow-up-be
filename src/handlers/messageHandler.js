@@ -28,6 +28,11 @@ async function handleEvent(event) {
 
   const text = event.message.text.trim();
 
+  // ถ้าส่ง text มาแต่ไม่มีข้อความ (empty) → ไม่ตอบ
+  if (!text) {
+    return null;
+  }
+
   try {
     // fetch profile
     let profile;
@@ -76,22 +81,21 @@ async function handleEvent(event) {
       return client.replyMessage(event.replyToken, flexMessage);
     }
 
-    // ตรวจสอบว่า user พยายามพิมพ์ตัวเลขหรือไม่
-    // const attemptedBPInput = /\d/.test(text) && /[\/\-]/.test(text);
-    const attemptedBPInput = /\d+\s*[^\d\s]+\s*\d+/.test(text);
-
     // ตรวจสอบรูปแบบที่ถูกต้อง: 120/80
     const bpMatch = text.match(/^(\d{2,3})\s*\/\s*(\d{2,3})$/);
 
-    // ถ้าพยายามพิมพ์ตัวเลขแต่รูปแบบผิด
-    if (attemptedBPInput && !bpMatch) {
+    // ตรวจสอบว่ามีตัวเลขในข้อความหรือไม่ (แม้แต่ตัวเดียว)
+    const hasNumber = /\d/.test(text);
+
+    // ถ้ามีตัวเลขในข้อความ แต่รูปแบบไม่ถูกต้อง → แสดง error
+    if (hasNumber && !bpMatch) {
       return client.replyMessage(event.replyToken, {
         type: "text",
         text: '❌ รูปแบบไม่ถูกต้อง\n\nกรุณาส่งค่าความดันในรูปแบบ:\n"120/80"\n\n(ใช้เครื่องหมาย / เท่านั้น และใส่ค่าเพียง 2 ตัว)\n\nหรือพิมพ์ "ประวัติ" เพื่อดูประวัติการบันทึก',
       });
     }
 
-    // ถ้าไม่ใช่รูปแบบที่ถูกต้อง และไม่ได้พยายามพิมพ์ตัวเลข = ไม่ตอบ
+    // ถ้าไม่มีตัวเลขเลยและไม่ใช่รูปแบบที่ถูกต้อง → ไม่ตอบ
     if (!bpMatch) {
       return null;
     }
